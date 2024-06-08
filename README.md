@@ -7,7 +7,7 @@ A discord bot that can post and edit priority lists in designated channels. Orig
 * /addpriority \<item\> \<priority level\> \<status\> \<description (Optional)\>
   * Adds a new priority item to the list with a priority level, status of completion, and an optional description.
  
-* /editpriority \<item\> \<priority level\ (Optional)> \<status (Optional\> \<description (Optional)\>
+* /editpriority \<item\> \<priority level\ (Optional)> \<status (Optional)\> \<description (Optional)\>
   * Edit a priority item, selected with the items name.
  
 * /removepriority \<item\>
