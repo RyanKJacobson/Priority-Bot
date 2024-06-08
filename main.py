@@ -7,7 +7,6 @@ from typing import Literal
 import discord
 from discord import app_commands
 from discord.ext import tasks
-from keepalive import keep_alive
 from string import capwords
 from datetime import datetime
 import database
@@ -149,14 +148,6 @@ async def menu(interation: discord.Interaction,
 # -----------------------------------------------------------------------------------------------
 # Make sure the table exists in the database
 database.init_db()
-
-# If this is running on REPL.IT, keep it alive after the tab closes with a web server
-# Set up a pinging service to keep it alive longer than an hour
-if "REPL_OWNER" in os.environ:
-    keep_alive()
-    print("Running on REPL.IT! Starting a keep-alive web-server.")
-    print("To keep this bot running long after the tab closes, set up a pinging service.")
-    
 
 token = os.environ["TOKEN"]
 bot.run(token)
