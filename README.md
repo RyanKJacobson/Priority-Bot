@@ -16,8 +16,8 @@ A discord bot that can post and edit priority lists in designated channels. Orig
 * /getchannels
   * See which channels have a priority list.
  
-* /setchannel \<channel\>
-  * Sets a channel to have a priority list.
+* /setchannel \<channel\> \<name_of_list/>
+  * Sets a channel to have a priority list, and names the list.
   * Caller requires server admin.
 
 * /forgetchannel \<channel\>
