@@ -1,3 +1,5 @@
+# PROJECT IS NOT COMPLETE YET, IT IS STILL IN EARLY DEVELOPMENT 
+
 # Priority-Bot
 
 A discord bot that can post and edit priority lists in designated channels. Originally created for Qvex at Queen's University.
