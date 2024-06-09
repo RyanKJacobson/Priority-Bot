@@ -7,14 +7,15 @@ import sqlite3
 
 def connect_db() -> sqlite3.dbapi2:
     """Get a connection object representing the database"""
-    return sqlite3.connect("database/database.sqlite")
+    return sqlite3.connect("database.sqlite")
 
 
 def init_db():
-    """Ensure the database contains the table for the channel IDs"""
+    """Ensure the database contains the required tables"""
     db = connect_db()
     cursor = db.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS Channels (Guild INTEGER PRIMARY KEY, Channel INTEGER);")
+    cursor.execute("CREATE TABLE IF NOT EXISTS Lists (Id INTEGER PRIMARY KEY, Guild INTEGER NOT NULL, Channel INTEGER, MessageId INTEGER , Name VARCHAR);")
+    cursor.execute("CREATE TABLE IF NOT EXISTS Tasks (Id INTEGER PRIMARY KEY, List INTEGER NOT NULL, Priority INTEGER NOT NULL, Name VARCHAR, Description VARCHAR);")
     cursor.close()
     db.commit()
 
