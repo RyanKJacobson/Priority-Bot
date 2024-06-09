@@ -3,6 +3,7 @@ Provides an interface for storing which channels
 to post the priority lists in each server using the bot
 """
 import sqlite3
+from typing import List, Tuple
 
 
 def connect_db() -> sqlite3.dbapi2:
@@ -19,8 +20,45 @@ def init_db():
     cursor.close()
     db.commit()
 
+def create_list(name: str, guild_id: int) -> int:
+    """
+    Create a new list, which only the specified server can view/modify.
 
-def set_channel(guild_id: int, channel_id: int):
+    :param name: The name of the list. Used by subsequent commands to select which list to operate on
+    :param guild_id: The server the list belongs to
+    :return: The unique ID of the new list.
+    """
+    db = connect_db()
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO Lists (Name, Guild)", (name, guild_id))
+    new_list_id = cursor.lastrowid()
+    cursor.close()
+    db.commit()
+
+    return new_list_id
+
+
+def create_task(list_id: int, task_name: str, priority: int, description: str):
+    db = connect_db()
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO Tasks (List, Priority, Name, Description) VALUES(?, ?, ?, ?)", (list_id, priority, task_name, description))
+    cursor.close()
+    db.commit()
+
+def get_tasks(list_id: int) -> List[dict]:
+    """
+    Return every task under the given list
+    """
+    db = connect_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT Name, Priority, Description FROM Tasks WHERE List = ?", (list_id, ))
+    all_tasks = cursor.fetchall()
+    cursor.close()
+    db.commit()
+    return [{"name": name, "priority": priority, "description": description} for name, priority, description in all_tasks]
+
+
+def set_channel(list_id: int, channel_id: int):
     """
     Persistently store which channel in the guild the priority list
     will be in.
@@ -28,61 +66,39 @@ def set_channel(guild_id: int, channel_id: int):
     If a channel has already been set for the guild it will
     be overwritten.
 
-    :param guild_id: The server containing the channel
-    :param channel_id: The channel to receive daily menus in
+    :param list_id: The list to display
+    :param channel_id: The channel to display the list in. Must be in the same server as the list
     """
     db = connect_db()
     cursor = db.cursor()
-    cursor.execute("INSERT OR REPLACE INTO Channels (Guild, Channel) VALUES(?, ?);",
-                   (guild_id, channel_id))
+    cursor.execute("UPDATE Lists Set Channel = ? WHERE Id = ?",
+                   (channel_id, list_id))
     cursor.close()
     db.commit()
 
 
-def forget_channel(guild_id: int):
+def forget_channel(list_id: int):
     """
-    Stop receiving daily menus in the channel
-
-    :param guild_id:
-    :return:
+    Stop displaying updates to this list
     """
     db = connect_db()
     cursor = db.cursor()
-    cursor.execute("DELETE FROM Channels WHERE Guild = (?)", (guild_id, ))
+    cursor.execute("UPDATE Lists Set Channel = NULL, MessageId = NULL WHERE Id = ?", (list_id, ))
     cursor.close()
     db.commit()
 
 
-def get_channel(guild_id: int) -> (int, None):
-    """Gets the channel id for this server's daily menus,
-    or None if one has not been set
-
-    :param guild_id: The id of the guild to query, or none if one was not set
+def get_channel(list_id: int) -> Tuple[int | None, int | None]:
+    """
+    Gets the channel id (if any) that the list should be displayed in,
+    as well as the most recent message id
     """
     db = connect_db()
     cursor = db.cursor()
     # Get the channel id for this guild from the database
-    cursor.execute("SELECT Channel FROM Channels WHERE Guild = (?)", (guild_id, ))
-    channel_id = cursor.fetchone()
-    cursor.close()
-    db.commit()
-    # Database returns none if no channel is found, pass it through to the caller
-    if channel_id is None:
-        return None
-    # The database returns the id as a single element tuple, just want the int
-    return channel_id[0]
-
-
-def get_channels() -> list:
-    """Returns a list of every channel registered to receive daily menus"""
-    db = connect_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT Channel FROM Channels")  # Get all the registered channel IDs
-    channel_ids = cursor.fetchall()
+    cursor.execute("SELECT Channel, MessageId FROM Lists WHERE Id = (?)", (list_id, ))
+    data = cursor.fetchone()
     cursor.close()
     db.commit()
 
-    # cursor.fetchall() provides a list of single element tuples
-    # Unpack those tuples into a list of integers
-    channel_ids = [id_tuple[0] for id_tuple in channel_ids]
-    return channel_ids
+    return data
